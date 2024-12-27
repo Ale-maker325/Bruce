@@ -78,6 +78,7 @@ void _setup_gpio() {
     pinMode(ENCODER_KEY, INPUT);
     // use TWO03 mode when PIN_IN1, PIN_IN2 signals are both LOW or HIGH in latch position.
     encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
+    //encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::FOUR0);
 
     // register interrupt routine
     attachInterrupt(digitalPinToInterrupt(ENCODER_INA), checkPosition, CHANGE);
