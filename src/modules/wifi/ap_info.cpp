@@ -104,29 +104,28 @@ void fillInfo(ScrollableTextArea& area){
     wifi_ap_record_t ap_info;
     err_t res;
     if( (res = esp_wifi_sta_get_ap_info(&ap_info)) != ESP_OK ){
-      String err;
-      switch (res)
-      {
-      case ESP_ERR_WIFI_CONN:
-        err = "iface is not initialized";
-        break;
-      case ESP_ERR_WIFI_NOT_CONNECT:
-        err = "station disconnected";
-        break;
-      default:
-        err = "failed with" + String(res);
-        break;
-      }
+        String err;
+        switch (res) {
+            case ESP_ERR_WIFI_CONN:
+                err = "iface is not initialized";
+                break;
+            case ESP_ERR_WIFI_NOT_CONNECT:
+                err = "station disconnected";
+                break;
+            default:
+                err = "failed with" + String(res);
+                break;
+        }
 
-      tft.print(err);
+        tft.print(err);
 
-      while(checkSelPress()) yield();
-      while(!checkSelPress()) yield();
+        while(checkSelPress()) yield();
+        while(!checkSelPress()) yield();
     }
 
     const auto mac = MAC(ap_info.bssid);
 
-    displayRedStripe("Gathering...",TFT_WHITE,bruceConfig.priColor);
+    displaySomething("Gathering...");
 
     // in promiscius mode also Rx/Tx can be gathered
     // organized in the most to least usable
@@ -145,23 +144,8 @@ void fillInfo(ScrollableTextArea& area){
     area.addLine("Antenna: " + String(ap_info.ant));
 }
 
-void update(ScrollableTextArea& area){
-    if( checkPrevPress() ){
-        area.scrollUp();
-    } else if( checkNextPress() ){
-        area.scrollDown();
-    }
-    area.draw();
-}
-
 void displayAPInfo(){
-    drawMainBorder();
-
-    // offset header and border
-    ScrollableTextArea area(FP, 10, 30, WIDTH - 20, HEIGHT - 40);
-
+    ScrollableTextArea area = ScrollableTextArea("AP INFO");
     fillInfo(area);
-
-    while(checkSelPress()){ update(area); yield();}
-    while(!checkSelPress()){ update(area); yield();}
+    area.show();
 }

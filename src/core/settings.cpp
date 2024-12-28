@@ -87,7 +87,7 @@ void setBrightnessMenu() {
     {"50 %", [=]() { setBrightness(50);  }, bruceConfig.bright == 50 },
     {"25 %", [=]() { setBrightness(25);  }, bruceConfig.bright == 25 },
     {" 1 %", [=]() { setBrightness(1);   }, bruceConfig.bright == 1 },
-    {"Main Menu", [=]() { backToMenu(); }},
+    {"Main Menu", [=]() { backToMenu(); }}, // this one bugs the brightness selection
   };
   delay(200);
   loopOptions(options, true,false,"",idx);
@@ -601,6 +601,8 @@ void setStartupApp() {
 void setGpsBaudrateMenu() {
   options = {
     {"9600 bps",   [=]() { bruceConfig.setGpsBaudrate(9600); }, bruceConfig.gpsBaudrate == 9600},
+    {"19200 bps",  [=]() { bruceConfig.setGpsBaudrate(19200); }, bruceConfig.gpsBaudrate == 19200},
+    {"57600 bps",  [=]() { bruceConfig.setGpsBaudrate(57600); }, bruceConfig.gpsBaudrate == 57600},
     {"115200 bps", [=]() { bruceConfig.setGpsBaudrate(115200); }, bruceConfig.gpsBaudrate == 115200},
   };
   delay(200);
