@@ -6,6 +6,27 @@
 #include <soc/soc_caps.h>
 #include <soc/adc_channel.h>
 
+
+
+
+// defines to make life easy
+#define PREV 0
+#define SEL 1
+#define NEXT 2
+#define ALL 3
+
+#include <RotaryEncoder.h>
+//extern RotaryEncoder encoder;
+extern RotaryEncoder *encoder;
+IRAM_ATTR void checkPosition();
+
+
+
+
+
+
+
+
 /***************************************************************************************
 ** Function name: _setup_gpio()
 ** Location: main.cpp
@@ -21,7 +42,34 @@ void _setup_gpio() {
     digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
     gpio_pulldown_dis(GPIO_NUM_36);
     gpio_pullup_dis(GPIO_NUM_36);
+
+
+    pinMode(ENCODER_KEY, INPUT);
+    // use TWO03 mode when PIN_IN1, PIN_IN2 signals are both LOW or HIGH in latch position.
+    encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
+    //encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::FOUR0);
+
+    // register interrupt routine
+    attachInterrupt(digitalPinToInterrupt(ENCODER_INA), checkPosition, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_INB), checkPosition, CHANGE);
 }
+
+
+//RotaryEncoder encoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
+RotaryEncoder *encoder = nullptr;
+int _new_pos = 0;
+int _last_pos = 0;
+int _last_dir = 0;
+IRAM_ATTR void checkPosition() {
+    encoder->tick(); // just call tick() to check the state.
+    _last_dir = (int)encoder->getDirection();
+    _last_pos = _new_pos;
+    _new_pos = encoder->getPosition();
+}
+
+
+
+
 
 
 /***************************************************************************************
