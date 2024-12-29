@@ -12,8 +12,10 @@
 ** Description:   initial setup for the device
 ***************************************************************************************/
 void _setup_gpio() { 
-    pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(SEL_BTN, INPUT);
+	
+	pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
+    
     pinMode(DW_BTN, INPUT);
     pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
     digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
