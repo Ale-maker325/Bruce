@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <vector>
 
-//#define HAS_KEYBOARD     //has keyboard to use 
+//#define HAS_KEYBOARD    //has keyboard to use 
 //#define HAS_KEYBOARD_HID //has keyboard to use 
 //#define KB_HID_EXIT_MSG "Mid Btn + Space to exit"
 
@@ -13,12 +13,6 @@
 ***************************************************************************************/
 void _setup_gpio();
 
-/***************************************************************************************
-** Function name: _post_setup_gpio()
-** Location: main.cpp
-** Description:   second stage gpio setup to make a few functions work
-***************************************************************************************/
-void _post_setup_gpio();
 
 /***************************************************************************************
 ** Function name: getBattery()
