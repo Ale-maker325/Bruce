@@ -7,6 +7,8 @@
 #include <soc/adc_channel.h>
 
 
+// #define DWITH_ENCODER
+#define DWITH_BUTTON
 
 
 // defines to make life easy
@@ -33,25 +35,35 @@ IRAM_ATTR void checkPosition();
 ** Description:   initial setup for the device
 ***************************************************************************************/
 void _setup_gpio() { 
-    pinMode(SEL_BTN, INPUT);
-	
-	pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
-    
+  pinMode(SEL_BTN, INPUT);
+  pinMode(BK_BTN, INPUT);
+  pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
+  digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
+  gpio_pulldown_dis(GPIO_NUM_36);
+  gpio_pullup_dis(GPIO_NUM_36);
+  //pinMode(BAT_PIN,INPUT); // Battery value
+
+  #ifdef DWITH_BUTTON
+    pinMode(UP_BTN, INPUT);   // Sets the power btn as an INPUT
     pinMode(DW_BTN, INPUT);
-    pinMode(4, OUTPUT);     // Keeps the Stick alive after take off the USB cable
-    digitalWrite(4,HIGH);   // Keeps the Stick alive after take off the USB cable
-    gpio_pulldown_dis(GPIO_NUM_36);
-    gpio_pullup_dis(GPIO_NUM_36);
-
-
+  #endif
+  
+  #ifdef DWITH_ENCODER
+    // Start with default IR, RF and RFID Configs, replace old
+    bruceConfig.rfModule=CC1101_SPI_MODULE;
+    bruceConfig.rfidModule=PN532_I2C_MODULE;
+    bruceConfig.irRx=1;
     pinMode(ENCODER_KEY, INPUT);
-    // use TWO03 mode when PIN_IN1, PIN_IN2 signals are both LOW or HIGH in latch position.
-    encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
-    //encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::FOUR0);
-
+    encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::FOUR0);   // use TWO03 mode when PIN_IN1, PIN_IN2 signals are both LOW or HIGH in latch position.
+    
     // register interrupt routine
     attachInterrupt(digitalPinToInterrupt(ENCODER_INA), checkPosition, CHANGE);
     attachInterrupt(digitalPinToInterrupt(ENCODER_INB), checkPosition, CHANGE);
+  #endif
+
+  
+  
+  
 }
 
 
@@ -66,6 +78,51 @@ IRAM_ATTR void checkPosition() {
     _last_pos = _new_pos;
     _new_pos = encoder->getPosition();
 }
+
+
+
+
+/* Verifies what check to try */
+bool menuPress(int bot){
+    //0 - prev
+    //1 - Sel
+    //2 - next
+    //3 - any
+    if((bot==0) && _last_dir>0) {
+        _last_dir=0;
+        return true;
+    }
+    if((bot==2) && _last_dir<0) {
+        _last_dir=0;
+        return true;
+    }
+    if((bot==1) && digitalRead(SEL_BTN)==BTN_ACT) {
+        _last_dir=0;
+        return true;
+    }
+    if(bot==3 && (_last_dir!=0 || digitalRead(SEL_BTN)==BTN_ACT)) {
+        _last_dir=0;
+        return true;
+    }
+    
+    if(bot==3 && digitalRead(BK_BTN)==BTN_ACT) {
+        _last_dir=0;
+        return true;
+    }
+    
+    return false;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -117,6 +174,27 @@ void _setBrightness(uint8_t brightval) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#ifdef DWITH_BUTTON
 /*********************************************************************
 ** Function: checkNextPress
 ** location: mykeyboard.cpp
@@ -132,8 +210,26 @@ bool checkNextPress(){
     } 
     else return false;
 }
+#endif
+#ifdef DWITH_ENCODER
+/* Verifies Upper Btn to go to previous item */
+bool checkNextPress(){
+    if(menuPress(NEXT)) {
+        if(wakeUpScreen()){
+        delay(200);
+        return false;
+        }
+        return true;
+    }
+
+    else return false;
+}
+
+#endif
 
 
+
+#ifdef DWITH_BUTTON
 /*********************************************************************
 ** Function: checkPrevPress
 ** location: mykeyboard.cpp
@@ -149,8 +245,26 @@ bool checkPrevPress() {
     }
     else return false;
 }
+#endif
+#ifdef DWITH_ENCODER
+/* Verifies Down Btn to go to next item */
+bool checkPrevPress() {
+    if(menuPress(PREV))     
+    {
+        if(wakeUpScreen()){
+        delay(200);
+        return false;
+        }
+        return true;
+    }
+
+    else return false;
+}
+#endif
 
 
+
+#ifdef DWITH_BUTTON
 /*********************************************************************
 ** Function: checkSelPress
 ** location: mykeyboard.cpp
@@ -167,8 +281,27 @@ bool checkSelPress(){
     }
     else return false;
 }
+#endif
+#ifdef DWITH_ENCODER
+/* Verifies if Select or OK was pressed */
+bool checkSelPress(){
+    checkPowerSaveTime();
+    if(menuPress(SEL))     
+    {
+        if(wakeUpScreen()){
+        delay(200);
+        return false;
+        }
+        return true;
+    }
+
+    else return false;
+}
+#endif
 
 
+
+#ifdef DWITH_BUTTON
 /*********************************************************************
 ** Function: checkEscPress
 ** location: mykeyboard.cpp
@@ -185,8 +318,26 @@ bool checkEscPress(){
     }
     else { return false; }
 }
+#endif
+#ifdef DWITH_ENCODER
+/* Verifies if ESCape was pressed */
+bool checkEscPress(){
+    if(digitalRead(BK_BTN)==LOW)
+    {
+        if(wakeUpScreen()){
+        delay(200);
+        return false;
+        }
+        returnToMenu=true;
+        return true;
+    }
+    else { return false; }
+}
+#endif
 
 
+
+#ifdef DWITH_BUTTON
 /*********************************************************************
 ** Function: checkAnyKeyPress
 ** location: mykeyboard.cpp
@@ -196,6 +347,34 @@ bool checkAnyKeyPress() {
     if(digitalRead(SEL_BTN)==LOW || digitalRead(UP_BTN)==LOW || digitalRead(DW_BTN)==LOW) return true;
     else return false;
 }
+#endif
+#ifdef DWITH_ENCODER
+/* Checks if any key was pressed */
+bool checkAnyKeyPress() {
+    if(menuPress(ALL)) return true;
+
+    return false;
+}
+#endif
+
+
+
+#ifdef DWITH_BUTTON
+#endif
+#ifdef DWITH_ENCODER
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*********************************************************************
