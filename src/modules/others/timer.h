@@ -6,13 +6,16 @@
  * @date 2024-12-07
  */
 
+#ifndef __TIMER_H__
+#define __TIMER_H__
+
+#include <globals.h>
 class Timer {
 private:
-
     int fontSize = 4;
     int duration = 0;
-    int timerX = WIDTH / 2;
-    int timerY = HEIGHT / 2;
+    int timerX = tftWidth / 2;
+    int timerY = tftHeight / 2;
     int underlineY = timerY + (fontSize + 1) * LH;
 
     void clearUnderline();
@@ -21,10 +24,11 @@ private:
     void underlineSeconds();
 
 public:
-
     Timer();
     ~Timer();
 
     void setup();
     void loop();
 };
+
+#endif
